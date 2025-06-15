@@ -1,54 +1,40 @@
-import React from "react";
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
-const Profile = () => {
-  const user = {
-    firstName: "Albert",
-    lastName: "Einstein",
-    email: "electron@gmail.com",
-    bookings: [
-      { date: "2025-05-01", time: "10:00 AM", status: "Confirmed" },
-      { date: "2025-04-30", time: "2:00 PM", status: "Cancelled" },
-    ],
-  };
+export default function Profile() {
+  const { user } = useAuth(); // Already fetched in AuthContext
+  const bookings = user?.bookings || [];
+
+  if (!user) return <div className="text-white p-8">Loading Profile...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-10">
-      <div className="max-w-3xl mx-auto border border-cyan-400 rounded-lg p-8 bg-[#0d0d0d] shadow-lg">
-        <h1 className="text-3xl font-bold text-cyan-400 mb-4">User Profile</h1>
-        <div className="space-y-3 mb-6 text-gray-300">
-          <p><span className="text-cyan-300">First Name:</span> {user.firstName}</p>
-          <p><span className="text-cyan-300">Last Name:</span> {user.lastName}</p>
-          <p><span className="text-cyan-300">Email:</span> {user.email}</p>
-        </div>
-
-        <h2 className="text-2xl font-semibold text-orange-400 mb-3">Booking History</h2>
-        <div className="space-y-4">
-          {user.bookings.map((booking, index) => (
-            <div
-              key={index}
-              className="p-4 bg-[#1a1a1a] border border-gray-700 rounded-md"
-            >
-              <p><span className="text-cyan-300">Date:</span> {booking.date}</p>
-              <p><span className="text-cyan-300">Time:</span> {booking.time}</p>
-              <p>
-                <span className="text-cyan-300">Status:</span>{" "}
-                <span
-                  className={
-                    booking.status === "Confirmed"
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }
-                >
-                  {booking.status}
-                </span>
-              </p>
-            </div>
-          ))}
-        </div>
+    <section className="min-h-screen bg-[#0a0a0a] text-white py-10 px-6">
+      <div className="bg-[#1a1a1a] rounded-xl p-8 shadow-md max-w-xl mx-auto border border-[#333]">
+        <h1 className="text-3xl font-bold text-[#00f2fe] mb-4">👤 Profile</h1>
+        <p><strong>Name:</strong> {user.name}</p>
+        <p><strong>Username:</strong> {user.username}</p>
+        <p><strong>Email:</strong> {user.email}</p>
+        <p><strong>Role:</strong> {user.role}</p>
       </div>
-    </div>
-  );
-};
 
-export default Profile;
- 
+      <div className="mt-10 max-w-3xl mx-auto">
+        <h2 className="text-2xl text-[#f97102] mb-4">📅 Your Bookings</h2>
+        {bookings.length === 0 ? (
+          <p className="text-[#999]">You have no bookings yet.</p>
+        ) : (
+          <ul className="space-y-4">
+            {bookings.map((b) => (
+              <li key={b.id} className="bg-[#1a1a1a] p-4 rounded-lg border border-[#333]">
+                <p><strong>Category:</strong> {b.slot.category}</p>
+                <p><strong>Room:</strong> {b.slot.slotType.room.name}</p>
+                <p><strong>Date:</strong> {b.slot.date}</p>
+                <p><strong>Time:</strong> {b.slot.slotType.startTime} - {b.slot.slotType.endTime}</p>
+                <p><strong>Purpose:</strong> {b.purpose}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}

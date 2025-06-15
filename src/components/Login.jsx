@@ -1,59 +1,55 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.id]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post('/api/auth/login', {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userId", res.data.userId);
+      alert("Login successful");
+      navigate("/dashboard");
+    } catch (err) {
+      alert("Login failed: " + (err.response?.data?.message || "Check credentials"));
+    }
+  };
+
   return (
-    <div className="bg-[#0a0a0a] min-h-screen flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md bg-[#111] border border-[#00f2fe] rounded-lg p-8 space-y-6">
-        {/* Logo */}
-        <h1 className="text-4xl font-bold text-center text-[#00f2fe]">
-          Flexi<span className="text-[#f97102]">Slot</span>
-        </h1>
-        <p className="text-center text-[#b0bec5]">Make the most of your life</p>
-        <h3 className="text-center text-xl font-semibold text-[#00f2fe]">Login</h3>
-
-        {/* Form */}
-        <form className="space-y-5">
-          {[
-            { id: 'name', label: 'Name', type: 'text', placeholder: 'Enter your name' },
-            { id: 'email', label: 'Email', type: 'email', placeholder: 'Enter your email' },
-            { id: 'password', label: 'Password', type: 'password', placeholder: '6+ characters' },
-          ].map(({ id, label, type, placeholder }) => (
-            <div key={id}>
-              <label htmlFor={id} className="block text-sm text-[#00f2fe] mb-1">
-                {label}
-              </label>
-              <input
-                id={id}
-                type={type}
-                placeholder={placeholder}
-                required
-                minLength={type === 'password' ? 6 : undefined}
-                className="w-full bg-[#1a1a1a] text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#00f2fe] placeholder-[#555]"
-              />
-            </div>
-          ))}
-
-          <button
-            type="submit"
-            className="w-full py-3 bg-[#00f2fe] text-[#0a0a0a] font-semibold rounded-lg hover:bg-[#00ff11] transition"
-          >
-            Login
-          </button>
-
-          <p className="text-center text-sm text-[#b0bec5]">
-            Not on FlexiSlot?{' '}
-            <Link to="/signup" className="text-[#00f2fe] hover:underline">
-              Just Sign up
-            </Link>
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-white">
+      <div className="bg-[#141414] p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center text-[#00f2fe]">Login</h1>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="email" className="block text-sm text-[#00f2fe] mb-1">Email</label>
+            <input id="email" value={formData.email} onChange={handleChange} type="email" placeholder="Enter your email" required className="w-full bg-[#1a1a1a] text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#00f2fe] placeholder-[#555]" />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm text-[#00f2fe] mb-1">Password</label>
+            <input id="password" value={formData.password} onChange={handleChange} type="password" placeholder="Enter your password" required className="w-full bg-[#1a1a1a] text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-[#00f2fe] placeholder-[#555]" />
+          </div>
+          <button type="submit" className="w-full py-3 bg-[#00f2fe] text-[#0a0a0a] font-semibold rounded-lg hover:bg-[#00ff11] transition">Login</button>
         </form>
-
-        <p className="text-center text-xs text-[#555] mt-4">
-          © 2019 FlexiSlot Corporation
+        <p className="mt-4 text-center text-sm text-[#888]">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-[#00f2fe] hover:underline">Sign up</Link>
         </p>
       </div>
     </div>
   );
 }
- 

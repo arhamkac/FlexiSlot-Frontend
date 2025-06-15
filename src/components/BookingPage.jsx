@@ -1,151 +1,249 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+
+const formatDate = (isoDate) => {
+  const [year, month, day] = isoDate.split('-');
+  return `${day}-${month}-${year.slice(2)}`;
+};
 
 export default function BookingPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    userName: '',
-    email: '',
-    date: '',
-    cat: '',
-    timeSlot: '',
-    room: '',
-  });
+  const { user } = useAuth();
+
+  const [slots, setSlots] = useState([]);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('');
+  const [purpose, setPurpose] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const handleChange = (e) =>
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  useEffect(() => {
+    axios
+      .get('/api/slots/available')
+      .then((res) => setSlots(res.data))
+      .catch((err) => console.error('Error fetching slots', err));
+  }, []);
 
-  const handleSubmit = (e) => {
+  const getAvailableDates = () => {
+    const uniqueDates = [...new Set(slots.map((slot) => slot.slotType.date))];
+    return uniqueDates;
+  };
+
+  const getAvailableCategories = () => {
+    return [
+      ...new Set(
+        slots
+          .filter((slot) => slot.slotType.date === selectedDate)
+          .map((slot) => slot.slotType.category)
+      ),
+    ];
+  };
+
+  const getAvailableTimes = () => {
+    return [
+      ...new Set(
+        slots
+          .filter(
+            (slot) =>
+              slot.slotType.date === selectedDate &&
+              slot.slotType.category === selectedCategory
+          )
+          .map((slot) => `${slot.slotType.startTime}-${slot.slotType.endTime}`)
+      ),
+    ];
+  };
+
+  const getAvailableRooms = () => {
+    return [
+      ...new Set(
+        slots
+          .filter(
+            (slot) =>
+              slot.slotType.date === selectedDate &&
+              slot.slotType.category === selectedCategory &&
+              `${slot.slotType.startTime}-${slot.slotType.endTime}` === selectedTime
+          )
+          .map((slot) => slot.slotType.room.name)
+      ),
+    ];
+  };
+
+  const getSelectedSlotId = () => {
+    const slot = slots.find(
+      (slot) =>
+        slot.slotType.date === selectedDate &&
+        slot.slotType.category === selectedCategory &&
+        `${slot.slotType.startTime}-${slot.slotType.endTime}` === selectedTime &&
+        slot.slotType.room.name === selectedRoom
+    );
+    return slot?.id;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const { userName, email, date, cat, timeSlot, room } = formData;
-  
-    if (!userName || !email || !date || !cat || !timeSlot || !room) {
-      alert('Please fill out all fields before booking.');
+    const slotId = getSelectedSlotId();
+    if (!slotId || !purpose) {
+      alert('Please complete all fields.');
       return;
     }
-  
-    if (window.confirm('Are you sure you want to book this slot?')) {
+
+    if (!window.confirm('Are you sure you want to book this slot?')) return;
+
+    try {
+      const res = await axios.post(`/api/bookings/book`, null, {
+        params: {
+          userId: user?.id,
+          slotId,
+          purpose,
+        },
+        headers: {
+          Authorization: `Bearer ${user?.token}`,
+        },
+      });
+
+      const booking = res.data;
+
+      // Transform the backend response into frontend-friendly format
+      const bookingDetails = {
+        userName: booking.user.name,
+        email: booking.user.email,
+        room: booking.slot.slotType.room.name,
+        date: booking.slot.slotType.date,
+        timeSlot: `${booking.slot.slotType.startTime}-${booking.slot.slotType.endTime}`,
+        purpose: booking.purpose,
+      };
+
       setShowConfirmation(true);
-      setTimeout(() => navigate('/bookingstatus', { state: formData }), 1000);
+      setTimeout(() => navigate('/bookingstatus', { state: bookingDetails }), 1200);
+    } catch (err) {
+      console.error('Booking failed:', err);
+      alert('Something went wrong while booking.');
     }
   };
-  
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#111] border border-[#00f2fe] rounded-lg p-8 space-y-6">
-        <h1 className="text-3xl font-bold text-center text-[#00f2fe]">
-          Book Your Slot
-        </h1>
-        <p className="text-center text-[#b0bec5]">
-          Pick date, category, time & room
-        </p>
+    <div className="bg-[#0a0a0a] min-h-screen flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl bg-[#111] border border-[#00f2fe] rounded-lg p-8 space-y-6">
+        <h1 className="text-3xl font-bold text-center text-[#00f2fe]">Book a Slot</h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {[
-            { id: 'userName', label: 'Name', type: 'text', name: 'userName' },
-            { id: 'email', label: 'Email', type: 'email', name: 'email' },
-            { id: 'date', label: 'Date', type: 'date', name: 'date' },
-          ].map(({ id, label, type, name }) => (
-            <div key={id}>
-              <label htmlFor={id} className="block text-sm text-[#00f2fe] mb-1">
-                {label}
-              </label>
-              <input
-                id={id}
-                name={name}
-                type={type}
-                value={formData[name]}
-                onChange={handleChange}
-                className="w-full bg-[#1a1a1a] text-white px-3 py-2 rounded
-                           focus:outline-none focus:ring-2 focus:ring-[#00f2fe]"
+          {/* Date */}
+          <div>
+            <label className="text-[#00f2fe] text-sm">Date</label>
+            <select
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setSelectedCategory('');
+                setSelectedTime('');
+                setSelectedRoom('');
+              }}
+              className="w-full mt-1 bg-[#1a1a1a] text-white px-4 py-2 rounded border border-[#00f2fe]"
+              required
+            >
+              <option value="">Select a date</option>
+              {getAvailableDates().map((date, idx) => (
+                <option key={idx} value={date}>
+                  {formatDate(date)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Category */}
+          {selectedDate && (
+            <div>
+              <label className="text-[#00f2fe] text-sm">Category</label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setSelectedTime('');
+                  setSelectedRoom('');
+                }}
+                className="w-full mt-1 bg-[#1a1a1a] text-white px-4 py-2 rounded border border-[#00f2fe]"
                 required
-              />
+              >
+                <option value="">Select category</option>
+                {getAvailableCategories().map((cat, idx) => (
+                  <option key={idx} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
             </div>
-          ))}
+          )}
 
+          {/* Time Slot */}
+          {selectedCategory && (
+            <div>
+              <label className="text-[#00f2fe] text-sm">Time Slot</label>
+              <select
+                value={selectedTime}
+                onChange={(e) => {
+                  setSelectedTime(e.target.value);
+                  setSelectedRoom('');
+                }}
+                className="w-full mt-1 bg-[#1a1a1a] text-white px-4 py-2 rounded border border-[#00f2fe]"
+                required
+              >
+                <option value="">Select time slot</option>
+                {getAvailableTimes().map((time, idx) => (
+                  <option key={idx} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Room */}
+          {selectedTime && (
+            <div>
+              <label className="text-[#00f2fe] text-sm">Room</label>
+              <select
+                value={selectedRoom}
+                onChange={(e) => setSelectedRoom(e.target.value)}
+                className="w-full mt-1 bg-[#1a1a1a] text-white px-4 py-2 rounded border border-[#00f2fe]"
+                required
+              >
+                <option value="">Select room</option>
+                {getAvailableRooms().map((room, idx) => (
+                  <option key={idx} value={room}>
+                    {room}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Purpose */}
           <div>
-            <label htmlFor="cat" className="block text-sm text-[#00f2fe] mb-1">
-              Category
-            </label>
-            <select
-              id="cat"
-              name="cat"
-              value={formData.cat}
-              onChange={handleChange}
-              className="w-full bg-[#1a1a1a] text-white px-3 py-2 rounded
-                         focus:outline-none focus:ring-2 focus:ring-[#00f2fe]"
+            <label className="text-[#00f2fe] text-sm">Purpose</label>
+            <input
+              type="text"
+              value={purpose}
+              onChange={(e) => setPurpose(e.target.value)}
+              placeholder="Purpose of booking"
+              className="w-full mt-1 bg-[#1a1a1a] text-white px-4 py-2 rounded border border-[#00f2fe]"
               required
-            >
-              <option value="" disabled>
-                Select a category
-              </option>
-              <option>Library</option>
-              <option>Classroom</option>
-              <option>Parking lot</option>
-            </select>
+            />
           </div>
 
-          <div>
-            <label htmlFor="timeSlot" className="block text-sm text-[#00f2fe] mb-1">
-              Time Slot
-            </label>
-            <select
-              id="timeSlot"
-              name="timeSlot"
-              value={formData.timeSlot}
-              onChange={handleChange}
-              className="w-full bg-[#1a1a1a] text-white px-3 py-2 rounded
-                         focus:outline-none focus:ring-2 focus:ring-[#00f2fe]"
-              required
-            >
-              <option value="" disabled>
-                Select a time slot
-              </option>
-              <option>8:00 AM - 10:00 AM</option>
-              <option>10:00 AM - 12:00 PM</option>
-              <option>1:00 PM - 3:00 PM</option>
-              <option>3:00 PM - 5:00 PM</option>
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor="room" className="block text-sm text-[#00f2fe] mb-1">
-              Room
-            </label>
-            <select
-              id="room"
-              name="room"
-              value={formData.room}
-              onChange={handleChange}
-              className="w-full bg-[#1a1a1a] text-white px-3 py-2 rounded
-                         focus:outline-none focus:ring-2 focus:ring-[#00f2fe]"
-              required
-            >
-              <option value="" disabled>
-                Select a room
-              </option>
-              <option>Room A</option>
-              <option>Room B</option>
-              <option>Room C</option>
-              <option>Room D</option>
-            </select>
-          </div>
-
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-3 bg-[#00f2fe] text-[#0a0a0a] font-semibold rounded-lg
-                       hover:bg-[#00ff11] transition"
+            className="w-full py-3 bg-[#00f2fe] hover:bg-[#00ff11] text-black font-semibold rounded-md transition duration-200"
           >
             Book Now
           </button>
         </form>
 
         {showConfirmation && (
-          <div className="text-center pt-4">
-            <p className="text-[#00ff11] font-semibold">Booking Confirmed!</p>
-          </div>
+          <div className="text-center text-[#00ff11] font-semibold pt-4">🎉 Booking Confirmed!</div>
         )}
       </div>
     </div>
