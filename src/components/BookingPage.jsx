@@ -29,7 +29,7 @@ export default function BookingPage() {
 
   const getAvailableDates = () => {
     const uniqueDates = [...new Set(slots.map((slot) => slot.slotType.date))];
-    return uniqueDates;
+    return uniqueDates.sort((a, b) => new Date(a) - new Date(b));
   };
 
   const getAvailableCategories = () => {
