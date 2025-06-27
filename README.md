@@ -26,6 +26,27 @@
   - Scroll and interaction animations with Framer Motion
 
 ---
+## 🚀 Project Features
+
+Here are some UI screenshots of the project:
+
+<div align="center">
+  <img src="Screenshot (230).png" alt="Feature 1" width="600" />
+</div>
+
+---
+
+<div align="center">
+<img src="Screenshot (231).png" alt="Feature 2" width="600"/>
+</div>
+
+---
+
+<div align="center">
+<img src="Screenshot (234).png" alt="Feature 5" width="600"/>
+</div>
+
+---
 
 ## 🛠️ Tech Stack
 
