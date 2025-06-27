@@ -57,8 +57,9 @@
 ```
 
 > ⚠️ **Note:**  
-> The backend is currently **not deployed** due to a deployment error. As a result, features of the application may not function properly in the online version. 
+> The backend is currently **not deployed** due to a deployment error. As a result, features of the application may not function properly in the online version.
 
+> Backend Repo: https://github.com/arhamkac/Flexi_Slot
 ---
 
 ## 🔧 Getting Started
