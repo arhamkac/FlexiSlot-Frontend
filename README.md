@@ -1,6 +1,6 @@
 # FlexiSLOT - Room Booking System
 
-A comprehensive room booking system built with Spring Boot backend and React frontend.
+A comprehensive room booking system built with Spring Boot backend and React frontend, designed to simplify on-campus slot bookings for libraries, classrooms, and parking spaces.
 
 ## 🚀 Features
 
@@ -9,24 +9,36 @@ A comprehensive room booking system built with Spring Boot backend and React fro
   - Role-based access control (User/Admin)
   - Password reset functionality
   - User profile management
+  - Signup and login with client-side validation
+  - Protected routes using context-based authentication
 
 - **Room & Slot Management**
   - Room categorization and capacity management
   - Flexible slot booking system
   - Real-time availability checking
   - Booking history and status tracking
+  - Browse and reserve slots by category:
+    - 📚 Library
+    - 🏫 Classroom
+    - 🚗 Parking
 
 - **Advanced Booking System**
   - Purpose-based booking requests
   - Booking approval workflow
   - Conflict detection and prevention
   - Email notifications
+  - View booking confirmations and status
 
 - **User Interface**
   - Modern, responsive React frontend
   - Intuitive booking interface
   - Real-time updates
   - Mobile-friendly design
+  - Fully mobile-first, responsive UI using Tailwind CSS
+  - Smooth animations with Framer Motion
+
+- **Contact System**
+  - "Contact Us" page for submitting feedback or queries
 
 ## 🏗️ Project Structure
 
@@ -68,7 +80,9 @@ FlexiSLOT/
 - **Vite** - Build tool and dev server
 - **React Router** - Client-side routing
 - **Axios** - HTTP client
-- **CSS3** - Styling
+- **Tailwind CSS** - Styling
+- **Framer Motion** - Animations
+- **React Context API** - State management
 
 ## 📋 Prerequisites
 
@@ -206,6 +220,28 @@ npm test
 - `PUT /api/admin/users/{userId}/block` - Block/unblock user
 - `GET /api/admin/bookings` - Get all bookings
 
+## 🖼️ UI Screenshots
+
+Here are some UI screenshots of the project:
+
+<div align="center">
+  <img src="Screenshot (230).png" alt="Feature 1" width="600" />
+</div>
+
+---
+
+<div align="center">
+<img src="Screenshot (231).png" alt="Feature 2" width="600"/>
+</div>
+
+---
+
+<div align="center">
+<img src="Screenshot (234).png" alt="Feature 5" width="600"/>
+</div>
+
+---
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -221,6 +257,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👥 Authors
 
 - **Om Sai Ram** - Initial work
+- **Arham Kac** - Frontend development
 
 ## 🙏 Acknowledgments
 
@@ -237,3 +274,8 @@ For support and questions:
 ---
 
 **Note**: This is a development version. For production deployment, ensure proper security configurations and environment-specific settings.
+
+> ⚠️ **Note:**  
+> The backend is currently **not deployed** due to a deployment error. As a result, features of the application may not function properly in the online version.
+
+> Backend Repo: https://github.com/arhamkac/Flexi_Slot
